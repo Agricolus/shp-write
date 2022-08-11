@@ -2,11 +2,12 @@
   "name": "shp-write",
   "version": "0.3.2",
   "description": "write shapefiles from pure javascript",
-  "main": "index.js",
+  "exports": "./shpwrite.js",
+  "module": "browser",
   "scripts": {
     "test": "mocha -R spec",
     "prepublish": "npm run make",
-    "make": "browserify -s shpwrite ./ > shpwrite.js",
+    "make": "browserify -s shpwrite -e index.js -p esmify > shpwrite.js",
     "make-test": "browserify indexTest.js > shpwrite.js"
   },
   "repository": {
@@ -42,6 +43,7 @@
   "devDependencies": {
     "browserify": "^13.0.0",
     "cz-conventional-changelog": "^1.2.0",
+    "esmify": "^2.1.1",
     "expect.js": "~0.3.1",
     "mocha": "~2.4.5"
   },

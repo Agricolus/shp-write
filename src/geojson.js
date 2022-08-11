@@ -18,7 +18,7 @@ function justCoords(t) {
 		t.geometry.coordinates[0][0] !== undefined &&
 		t.geometry.coordinates[0][0][0] !== undefined) {
 		if (t.geometry.coordinates[0].length > 1) {
-			t.geometries.coordinates
+			return t.geometry.coordinates
 		}
 		else {
 			return t.geometry.coordinates[0];
