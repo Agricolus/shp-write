@@ -2,8 +2,6 @@
   "name": "shp-write",
   "version": "0.3.2",
   "description": "write shapefiles from pure javascript",
-  "exports": "./shpwrite.js",
-  "module": "browser",
   "scripts": {
     "test": "mocha -R spec",
     "prepublish": "npm run make",
