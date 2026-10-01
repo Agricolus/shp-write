@@ -1,106 +1,87 @@
-[![Build Status](https://secure.travis-ci.org/mapbox/shp-write.svg?branch=master)](http://travis-ci.org/mapbox/shp-write)
-
 # shp-write
 
-Writes shapefile in pure javascript. Uses [dbf](https://github.com/tmcw/dbf)
-for the data component, and [jsZIP](http://stuk.github.io/jszip/) to generate
-ZIP file downloads in-browser.
+Writes shapefiles in pure JavaScript/TypeScript. Generates the `.shp`, `.shx`,
+`.dbf` and `.prj` components, and zips them (with
+[jszip](https://stuk.github.io/jszip/)) for in-browser downloads.
+
+## Install
+
+```sh
+npm install shp-write
+```
 
 ## Usage
 
-For node.js or [browserify](https://github.com/substack/node-browserify)
+```ts
+import { download, zip, write } from 'shp-write';
 
-    npm install --save shp-write
+const collection = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [0, 0] },
+      properties: { name: 'Foo' },
+    },
+  ],
+};
 
-Or in a browser
+// trigger a browser download of the zipped shapefile
+download(collection, { folder: 'myshapes', file: 'myshapes' });
 
-    https://unpkg.com/shp-write@latest/shpwrite.js
-
-## Caveats
-
-* Requires a capable fancy modern browser with [Typed Arrays](http://caniuse.com/#feat=typedarrays)
-  support
-* Geometries: Point, LineString, Polygon, MultiLineString, MultiPolygon
-* Tabular-style properties export with Shapefile's field name length limit
-* Uses jsZip for ZIP files, but [compression is buggy](https://github.com/Stuk/jszip/issues/53) so it uses STORE instead of DEFLATE.
-
-## Example
-
-```js
-var shpwrite = require('shp-write');
-
-// (optional) set names for feature types and zipped folder
-var options = {
-    folder: 'myshapes',
-    types: {
-        point: 'mypoints',
-        polygon: 'mypolygons',
-        line: 'mylines'
-    }
-}
-// a GeoJSON bridge for features
-shpwrite.download({
-    type: 'FeatureCollection',
-    features: [
-        {
-            type: 'Feature',
-            geometry: {
-                type: 'Point',
-                coordinates: [0, 0]
-            },
-            properties: {
-                name: 'Foo'
-            }
-        },
-        {
-            type: 'Feature',
-            geometry: {
-                type: 'Point',
-                coordinates: [0, 10]
-            },
-            properties: {
-                name: 'Bar'
-            }
-        }
-    ]
-}, options);
-// triggers a download of a zip file with shapefiles contained within.
+// build a zip without downloading (Buffer in Node, Blob in the browser)
+const buffer = await zip(collection);
 ```
 
 ## API
 
-### `download(geojson)`
+### `download(geojson, options?)`
 
-Given a [GeoJSON](http://geojson.org/) FeatureCollection as an object,
-converts convertible features into Shapefiles and triggers a download.
+Converts a GeoJSON `FeatureCollection` into shapefiles and triggers a browser
+download of the resulting `.zip`.
 
 ### `write(data, geometrytype, geometries, callback)`
 
-Given data, an array of objects for each row of data, geometry, the OGC standard
-geometry type (like `POINT`), geometries, a list of geometries as bare coordinate
-arrays, generate a shapfile and call the callback with `err` and an object with
+Low-level writer. Given rows of attribute data, an OGC geometry type
+(`POINT`, `POLYLINE`, `POLYGON`) and bare coordinate arrays, calls `callback`
+with `err` and `{ shp, shx, dbf, prj }` (each of `shp`/`shx`/`dbf` is a
+`DataView`, `prj` is a string).
 
-```js
+### `zip(geojson, options?)`
+
+Returns a `Promise` of a `Buffer` (Node) or `Blob` (browser) of a zipped
+shapefile.
+
+### Options
+
+```ts
 {
-    shp: DataView(),
-    shx: DataView(),
-    dbf: DataView()
+  folder: 'layers',   // folder name inside the zip
+  file: 'shapes',     // downloaded file name (without extension)
+  types: {            // per-geometry-type file names
+    point: 'mypoints',
+    polyline: 'mylines', // note: the key is `polyline`, not `line`
+    polygon: 'mypolygons',
+  },
 }
 ```
 
-### `zip(geojson)`
+## Caveats
 
-Generate a ArrayBuffer of a zipped shapefile, dbf, and prj, from a GeoJSON
-object.
+- Requires `TypedArray` support.
+- Geometries: Point, LineString, Polygon, MultiLineString, MultiPolygon.
+- Tabular properties are exported with the shapefile field-name length limit.
 
-## Other Implementations
+## Development
 
-* https://code.google.com/p/pyshp/
+```sh
+npm install
+npm run typecheck   # tsc --noEmit
+npm test            # vitest
+npm run build       # vite build -> dist/ (ESM + type declarations)
+npm run dev         # vite dev server with the demo page
+```
 
-## Reference
+## License
 
-* http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf
-
-## Contributors
-
-* Nick Baugh <niftylettuce@gmail.com>
+BSD-2-Clause
